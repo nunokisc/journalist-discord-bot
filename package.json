@@ -1,4 +1,24 @@
 {
+  "name": "journalist-discord-bot",
+  "version": "0.0.1",
+  "description": "Simple discord bot for communicating to the public API at HackerNews and scraping Pplware.",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nunokisc/journalist-discord-bot.git"
+  },
+  "keywords": [
+    "journalist-discord-bot",
+    "discordbot",
+    "hackernews",
+    "pplware",
+    "discord",
+    "Node.js"
+  ],
+  "author": "Nuno Cardoso <nuno_kisc@hotmail.com>",
   "dependencies": {
     "axios": "^0.25.0",
     "cheerio": "^1.0.0-rc.10",
@@ -7,5 +27,10 @@
     "lowdb": "^1.0.0",
     "request": "^2.88.2",
     "uuid": "^3.1.0"
-  }
+  },
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/nunokisc/journalist-discord-bot/issues"
+  },
+  "homepage": "https://github.com/nunokisc/journalist-discord-bot#readme"
 }
