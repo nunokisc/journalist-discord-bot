@@ -82,7 +82,7 @@ function getPplwareTimer() {
           console.log(`Fetching Pplware new article ${data.url}`);
           //console.log(resp)
           //console.log(err)
-          if (err || resp.image.indexOf("http://") == -1 || resp.image.indexOf("https://") == -1) {
+          if (err || (resp.image.indexOf("http://") == -1 && resp.image.indexOf("https://") == -1)) {
             let embed = new Discord.MessageEmbed()
               .setColor('#ff0000')
               .setThumbnail('https://pbs.twimg.com/profile_images/546480476538425344/pL1sThkk_400x400.png')
@@ -155,7 +155,7 @@ function getHackerNewsTimer(thread) {
             linkPreviewCallback(bodyItem.url, (err, resp) => {
               //console.log(resp)
               //console.log(err)
-              if (err || resp.image.indexOf("http://") == -1 || resp.image.indexOf("https://") == -1) {
+              if (err || (resp.image.indexOf("http://") == -1 && resp.image.indexOf("https://") == -1)) {
                 let embed = new Discord.MessageEmbed()
                   .setColor('#ff0000')
                   .setThumbnail('https://pbs.twimg.com/profile_images/469397708986269696/iUrYEOpJ_400x400.png')
