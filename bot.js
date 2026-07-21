@@ -86,6 +86,15 @@ function timestamp() {
   return `[${date.toDateString()}]`
 }
 
+// Discord rejects the whole message if any single embed field exceeds its
+// limit or the embed's total size exceeds 6000 chars; scraped article text
+// and link-preview descriptions have no guaranteed length, so truncate
+// defensively before building the embed.
+function truncate(str, max) {
+  str = String(str == null ? '' : str);
+  return str.length > max ? str.slice(0, max - 1) + '…' : str;
+}
+
 // Guards against a channel that was removed/misconfigured after the fact;
 // used to throw and crash the whole process on send.
 function sendEmbedToConfiguredChannels(feed, embed) {
@@ -127,16 +136,16 @@ function getPplwareTimer() {
             let embed = new EmbedBuilder()
               .setColor('#ff0000')
               .setThumbnail('https://pbs.twimg.com/profile_images/546480476538425344/pL1sThkk_400x400.png')
-              .setDescription((data.text1 + "\n" + data.text2) || 'N/A')
-              .setTitle(data.title || 'N/A')
-              .addFields({ name: 'Categoria', value: data.category || 'N/A', inline: !hasImage })
+              .setDescription(truncate((data.text1 + "\n" + data.text2) || 'N/A', 2500))
+              .setTitle(truncate(data.title || 'N/A', 256))
+              .addFields({ name: 'Categoria', value: truncate(data.category || 'N/A', 256), inline: !hasImage })
               .setURL(data.url)
               .setTimestamp()
               .setFooter({ text: 'https://pplware.sapo.pt/', iconURL: 'https://pbs.twimg.com/profile_images/546480476538425344/pL1sThkk_400x400.png' });
             if (hasImage) {
               embed.setImage(resp.image);
               if (resp.description) {
-                embed.addFields({ name: 'Short', value: resp.description });
+                embed.addFields({ name: 'Short', value: truncate(resp.description, 500) });
               }
             }
             sendEmbedToConfiguredChannels('pplware', embed);
@@ -192,17 +201,17 @@ function getHackerNewsTimer(thread) {
                   let embed = new EmbedBuilder()
                     .setColor('#ff0000')
                     .setThumbnail('https://pbs.twimg.com/profile_images/469397708986269696/iUrYEOpJ_400x400.png')
-                    .setTitle(bodyItem.title || 'N/A')
+                    .setTitle(truncate(bodyItem.title || 'N/A', 256))
                     .addFields(
                       { name: 'Score', value: `${bodyItem.score}`, inline: true },
-                      { name: 'Submitted by', value: `[${bodyItem.by}](https://news.ycombinator.com/user?id=${bodyItem.by} 'optional hovertext')`, inline: true },
+                      { name: 'Submitted by', value: truncate(`[${bodyItem.by}](https://news.ycombinator.com/user?id=${bodyItem.by} 'optional hovertext')`, 1024), inline: true },
                       { name: 'User Karma', value: `${bodyUser.karma}`, inline: true }
                     )
                     .setURL(bodyItem.url)
                     .setTimestamp()
                     .setFooter({ text: `https://news.ycombinator.com/item?id=${output}`, iconURL: 'https://pbs.twimg.com/profile_images/469397708986269696/iUrYEOpJ_400x400.png' });
                   if (hasImage) {
-                    embed.setDescription(resp.description || 'N/A');
+                    embed.setDescription(truncate(resp.description || 'N/A', 2500));
                     embed.setImage(resp.image);
                   }
                   sendEmbedToConfiguredChannels('hackernews', embed);
@@ -237,10 +246,10 @@ function getHackerNews(message, thread) {
           console.log(`Fetching https://hacker-news.firebaseio.com/v0/item/${output}.json`)
           let embed = new EmbedBuilder()
             .setColor('#ff0000')
-            .setTitle(body.title || 'N/A')
+            .setTitle(truncate(body.title || 'N/A', 256))
             .addFields(
-              { name: 'Submitted by', value: `${body.by}` },
-              { name: 'URL', value: `${body.url}` }
+              { name: 'Submitted by', value: truncate(`${body.by}`, 1024) },
+              { name: 'URL', value: truncate(`${body.url}`, 1024) }
             )
             .setFooter({ text: `https://news.ycombinator.com/item?id=${output}` });
           message.channel.send({ embeds: [embed] });
