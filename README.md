@@ -23,5 +23,5 @@ const settings = {
 module.exports = settings;
 ```
 
-# discord.js v14 / Discord Developer Portal
-This bot reads message content to detect its commands (`-latest`, `-news`, ...), which since discord.js v14 requires the **Message Content Intent** privileged intent to be enabled for the bot in the [Discord Developer Portal](https://discord.com/developers/applications) (Bot page → Privileged Gateway Intents). Without it, `messageCreate` events will arrive with an empty `content` and no command will trigger.
+# Discord Developer Portal
+This bot reads message content to detect its commands (`-latest`, `-news`, ...), which requires the **Message Content Intent** privileged intent to be enabled for the bot in the [Discord Developer Portal](https://discord.com/developers/applications) (Bot page → Privileged Gateway Intents). Discord enforces this at the gateway level regardless of the client library version — without it, message events arrive with an empty `content` and no command will trigger.

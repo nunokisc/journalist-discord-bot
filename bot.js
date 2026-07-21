@@ -1,5 +1,5 @@
 //setup
-const { Client, GatewayIntentBits, EmbedBuilder, Options } = require('discord.js');
+const Discord = require('discord.js');
 const axios = require('axios');
 const config = require('./config');
 const { linkPreviewCallback } = require('link-preview-node');
@@ -10,22 +10,7 @@ var sendChannels = config.sendChannels;
 
 const HTTP_TIMEOUT = 10000;
 
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ],
-  // Bound how much discord.js caches in memory instead of the unlimited
-  // default, since this bot only ever needs guild/channel metadata.
-  makeCache: Options.cacheWithLimits({
-    MessageManager: 0,
-    UserManager: 0,
-    GuildMemberManager: 0,
-    PresenceManager: 0,
-    ReactionManager: 0
-  })
-});
+const client = new Discord.Client();
 
 // A crash in one of the async fetch/scrape callbacks used to take down the
 // whole process (pm2 would then restart it, which showed up as frequent
@@ -40,7 +25,7 @@ process.on('uncaughtException', (err) => {
 
 console.log(sendChannels)
 //Tells console when bot ready
-client.once('clientReady', () => {
+client.once('ready', () => {
   console.log(`${timestamp()} ${client.user.tag} sucessfully logged in!`)
   console.log("Connected Servers:")
   client.guilds.cache.forEach(server => {
@@ -48,7 +33,7 @@ client.once('clientReady', () => {
   });
 });
 //listen for messages
-client.on('messageCreate', message => {
+client.on('message', message => {
   if (message.author.id == client.user.id) return;
   if (!message.content.startsWith(config.prefix)) return;
   let args = message.content.toLowerCase().replace(/^\-/, '').split(' ');
@@ -108,7 +93,7 @@ function sendEmbedToConfiguredChannels(feed, embed) {
       return;
     }
     console.log("Send it to server: " + server.name + " " + server.id + " channel: " + sendTo)
-    channel.send({ embeds: [embed] });
+    channel.send(embed);
   });
 }
 
@@ -133,19 +118,19 @@ function getPplwareTimer() {
           try {
             console.log(`Fetching Pplware new article ${data.url}`);
             let hasImage = !err && resp && resp.image && (resp.image.indexOf("http://") != -1 || resp.image.indexOf("https://") != -1);
-            let embed = new EmbedBuilder()
+            let embed = new Discord.MessageEmbed()
               .setColor('#ff0000')
               .setThumbnail('https://pbs.twimg.com/profile_images/546480476538425344/pL1sThkk_400x400.png')
               .setDescription(truncate((data.text1 + "\n" + data.text2) || 'N/A', 2500))
               .setTitle(truncate(data.title || 'N/A', 256))
-              .addFields({ name: 'Categoria', value: truncate(data.category || 'N/A', 256), inline: !hasImage })
+              .addField('Categoria', truncate(data.category || 'N/A', 256), !hasImage)
               .setURL(data.url)
               .setTimestamp()
-              .setFooter({ text: 'https://pplware.sapo.pt/', iconURL: 'https://pbs.twimg.com/profile_images/546480476538425344/pL1sThkk_400x400.png' });
+              .setFooter('https://pplware.sapo.pt/', 'https://pbs.twimg.com/profile_images/546480476538425344/pL1sThkk_400x400.png');
             if (hasImage) {
               embed.setImage(resp.image);
               if (resp.description) {
-                embed.addFields({ name: 'Short', value: truncate(resp.description, 500) });
+                embed.addField('Short', truncate(resp.description, 500));
               }
             }
             sendEmbedToConfiguredChannels('pplware', embed);
@@ -198,18 +183,16 @@ function getHackerNewsTimer(thread) {
               linkPreviewCallback(bodyItem.url, (err, resp) => {
                 try {
                   let hasImage = !err && resp && resp.image && (resp.image.indexOf("http://") != -1 || resp.image.indexOf("https://") != -1);
-                  let embed = new EmbedBuilder()
+                  let embed = new Discord.MessageEmbed()
                     .setColor('#ff0000')
                     .setThumbnail('https://pbs.twimg.com/profile_images/469397708986269696/iUrYEOpJ_400x400.png')
                     .setTitle(truncate(bodyItem.title || 'N/A', 256))
-                    .addFields(
-                      { name: 'Score', value: `${bodyItem.score}`, inline: true },
-                      { name: 'Submitted by', value: truncate(`[${bodyItem.by}](https://news.ycombinator.com/user?id=${bodyItem.by} 'optional hovertext')`, 1024), inline: true },
-                      { name: 'User Karma', value: `${bodyUser.karma}`, inline: true }
-                    )
+                    .addField('Score', `${bodyItem.score}`, true)
+                    .addField('Submitted by', truncate(`[${bodyItem.by}](https://news.ycombinator.com/user?id=${bodyItem.by} 'optional hovertext')`, 1024), true)
+                    .addField('User Karma', `${bodyUser.karma}`, true)
                     .setURL(bodyItem.url)
                     .setTimestamp()
-                    .setFooter({ text: `https://news.ycombinator.com/item?id=${output}`, iconURL: 'https://pbs.twimg.com/profile_images/469397708986269696/iUrYEOpJ_400x400.png' });
+                    .setFooter(`https://news.ycombinator.com/item?id=${output}`, 'https://pbs.twimg.com/profile_images/469397708986269696/iUrYEOpJ_400x400.png');
                   if (hasImage) {
                     embed.setDescription(truncate(resp.description || 'N/A', 2500));
                     embed.setImage(resp.image);
@@ -244,15 +227,13 @@ function getHackerNews(message, thread) {
         .then(itemResponse => {
           let body = itemResponse.data;
           console.log(`Fetching https://hacker-news.firebaseio.com/v0/item/${output}.json`)
-          let embed = new EmbedBuilder()
+          let embed = new Discord.MessageEmbed()
             .setColor('#ff0000')
             .setTitle(truncate(body.title || 'N/A', 256))
-            .addFields(
-              { name: 'Submitted by', value: truncate(`${body.by}`, 1024) },
-              { name: 'URL', value: truncate(`${body.url}`, 1024) }
-            )
-            .setFooter({ text: `https://news.ycombinator.com/item?id=${output}` });
-          message.channel.send({ embeds: [embed] });
+            .addField('Submitted by', truncate(`${body.by}`, 1024))
+            .addField('URL', truncate(`${body.url}`, 1024))
+            .setFooter(`https://news.ycombinator.com/item?id=${output}`);
+          message.channel.send(embed);
         });
     })
     .catch(err => {
