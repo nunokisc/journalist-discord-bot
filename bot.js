@@ -40,7 +40,7 @@ process.on('uncaughtException', (err) => {
 
 console.log(sendChannels)
 //Tells console when bot ready
-client.once('ready', () => {
+client.once('clientReady', () => {
   console.log(`${timestamp()} ${client.user.tag} sucessfully logged in!`)
   console.log("Connected Servers:")
   client.guilds.cache.forEach(server => {
