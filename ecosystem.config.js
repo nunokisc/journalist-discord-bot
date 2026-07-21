@@ -9,6 +9,7 @@ module.exports = {
       },
       restart_delay: 5000, // espera 5s antes de reiniciar
       watch: false,        // true se quiser reiniciar ao mudar arquivos
+      max_memory_restart: "200M", // rede de segurança: reinicia se a RAM disparar
     },
   ],
 };
